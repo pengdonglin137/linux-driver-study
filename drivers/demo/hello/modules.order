@@ -1,0 +1,3 @@
+kernel//home/pengdl/work/study/qemu_study/kernel/drivers/hello/hello.ko
+kernel//home/pengdl/work/study/qemu_study/kernel/drivers/hello/hello2.ko
+kernel//home/pengdl/work/study/qemu_study/kernel/drivers/hello/dump_stack.ko
