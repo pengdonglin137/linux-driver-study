@@ -31,14 +31,14 @@ static void scull_trim(scull_dev_t *dev)
 		if (dpst->data) {
 			while (n < qset) {
 				if (dpst->data[n])
-					kfree(dpst->data[n]);
+					devm_kfree(dev->device, dpst->data[n]);
 				n++;
 			}
-			kfree(dpst->data);
+			devm_kfree(dev->device, dpst->data);
 			dpst->data = NULL;
 		}
 		next = dpst->next;
-		kfree(dpst);
+		devm_kfree(dev->device, dpst);
 	}
 }
 
@@ -46,6 +46,7 @@ static int scull_open (struct inode *inode, struct file *filp)
 {
 	scull_dev_t *dev;
 
+	printk("%s enter.\n", __func__);
 	dev = container_of(inode->i_cdev, scull_dev_t, cdev);
 	filp->private_data = dev;
 
@@ -57,6 +58,8 @@ static int scull_open (struct inode *inode, struct file *filp)
 
 static int scull_close (struct inode *inode, struct file *filp)
 {
+	printk("%s enter.\n", __func__);
+
 	filp->private_data = NULL;
 	return 0;
 }
@@ -66,9 +69,9 @@ static scull_qset_t * scull_follow(scull_dev_t *dev, int item)
 	scull_qset_t *dpst = dev->data;
 
 	if (!dpst) {
-		dpst = (scull_qset_t *)kzalloc(sizeof(scull_qset_t), GFP_KERNEL);
+		dpst = (scull_qset_t *)devm_kzalloc(dev->device, sizeof(scull_qset_t), GFP_KERNEL);
 		if (!dpst) {
-			printk(KERN_ERR "kzalloc scull_qset_t  error.\n");
+			printk(KERN_ERR "devm_kzalloc scull_qset_t  error.\n");
 			return NULL;
 		}
 		dev->data = dpst; /* important  */
@@ -76,9 +79,9 @@ static scull_qset_t * scull_follow(scull_dev_t *dev, int item)
 
 	while (item--) {
 		if (!dpst->next) {
-			dpst->next = (scull_qset_t *)kzalloc(sizeof(scull_qset_t), GFP_KERNEL);
+			dpst->next = (scull_qset_t *)devm_kzalloc(dev->device, sizeof(scull_qset_t), GFP_KERNEL);
 			if (!dpst->next) {
-				printk(KERN_ERR "kzalloc scull_qset_t  error.\n");
+				printk(KERN_ERR "devm_kzalloc scull_qset_t  error.\n");
 				return NULL;
 			}
 		}
@@ -98,6 +101,7 @@ static ssize_t scull_read (struct file *filp, char __user *buf, size_t num, loff
 	int item, s_pos, q_pos;
 	int ret = 0;
 
+	printk("%s enter.\n", __func__);
 	if (down_interruptible(&dev->sema))
 		return -ERESTARTSYS;
 
@@ -157,6 +161,8 @@ static ssize_t scull_write (struct file *filp, const char __user *buf, size_t nu
 	int item, s_pos, q_pos;
 	int ret = 0;
 
+	printk("%s enter.\n", __func__);
+
 	if (down_interruptible(&dev->sema)) {
 		return -ERESTARTSYS;
 	}
@@ -182,17 +188,17 @@ static ssize_t scull_write (struct file *filp, const char __user *buf, size_t nu
 	}
 
 	if (!dpst->data) {
-		dpst->data = (void **)kzalloc(sizeof(char *)*qset, GFP_KERNEL);
+		dpst->data = (void **)devm_kzalloc(dev->device, sizeof(char *)*qset, GFP_KERNEL);
 		if (!dpst->data) {
-			printk(KERN_ERR "kzalloc qset failed.\n");
+			printk(KERN_ERR "devm_kzalloc qset failed.\n");
 			goto out2;
 		}
 	}
 
 	if (!dpst->data[s_pos]) {
-		dpst->data[s_pos] = kzalloc(sizeof(char *)*quannum, GFP_KERNEL);
+		dpst->data[s_pos] = devm_kzalloc(dev->device, sizeof(char *)*quannum, GFP_KERNEL);
 		if (!dpst->data[s_pos]) {
-			printk(KERN_ERR "kzalloc quannum failed.\n");
+			printk(KERN_ERR "devm_kzalloc quannum failed.\n");
 			goto out2;
 		}
 	}
